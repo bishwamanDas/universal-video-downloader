@@ -96,9 +96,16 @@ def load_settings() -> Settings:
         or os.environ.get("FFMPEG_PATH", "").strip()
         or None
     )
+    raw_host = os.environ.get("UVD_HOST") or os.environ.get("HOST") or "127.0.0.1"
+    raw_port = os.environ.get("UVD_PORT") or os.environ.get("PORT") or "8000"
+    try:
+        parsed_port = int(raw_port)
+    except ValueError:
+        parsed_port = 8000
+
     return Settings(
-        host=_env_str("UVD_HOST", "127.0.0.1"),
-        port=_env_int("UVD_PORT", 8000),
+        host=raw_host.strip(),
+        port=parsed_port,
         download_dir=Path(_env_str("UVD_DOWNLOAD_DIR", str(BASE_DIR / "downloads"))).resolve(),
         data_dir=Path(_env_str("UVD_DATA_DIR", str(BASE_DIR / "data"))).resolve(),
         static_dir=BASE_DIR / "app" / "static",

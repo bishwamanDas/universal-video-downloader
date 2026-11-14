@@ -24,9 +24,10 @@ RUN mkdir -p downloads data/cookies
 
 # Default configuration for container runtime
 ENV UVD_HOST=0.0.0.0
-ENV UVD_PORT=8000
+ENV PORT=10000
 ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
+EXPOSE 10000
 
 CMD ["python", "run.py"]
