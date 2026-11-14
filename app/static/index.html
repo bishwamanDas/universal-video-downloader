@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="A local four-tier video extractor. Paste a page or media URL and download the video you have permission to keep.">
+  <title>Universal Video Downloader</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Universal Video Downloader home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 34 34" fill="none">
+          <path d="M6 9.5V24.5C6 26.4 8.1 27.6 9.7 26.6L22.4 19.1C24 18.2 24 15.8 22.4 14.9L9.7 7.4C8.1 6.4 6 7.6 6 9.5Z" fill="currentColor"/>
+          <path d="M28 8V26" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span class="brand-word">UNIVERSAL<span class="brand-slash">/</span>VD</span>
+      <span class="brand-meta">local engine</span>
+    </a>
+    <div class="capabilities" id="capabilities" aria-label="Engine components">
+      <span class="capability" data-cap="ytdlp"><i></i>yt-dlp <b>…</b></span>
+      <span class="capability" data-cap="ffmpeg"><i></i>FFmpeg <b>…</b></span>
+      <span class="capability" data-cap="browser"><i></i>Chromium <b>…</b></span>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-main">
+        <p class="eyebrow"><span class="live-dot"></span> Four-tier extraction · runs on this machine</p>
+        <h1>Find the video.<br><span>Keep the file.</span></h1>
+      </div>
+      <p class="lede">Paste a page or a direct media URL. The engine starts with the simplest probe and escalates through yt-dlp, static HTML, and a headless browser until it finds a source that actually streams.</p>
+    </section>
+
+    <section class="notice" role="note">
+      <svg class="notice-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M10 2.5 17 4.7v4.6c0 4.2-2.9 6.9-7 8.2-4.1-1.3-7-4-7-8.2V4.7L10 2.5Z" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10 7v3.6M10 13.4v.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <p><strong>Permission first.</strong> Only download content you own or have permission to download.</p>
+    </section>
+
+    <section class="panel analyze-panel" aria-labelledby="analyze-title">
+      <div class="panel-kicker">
+        <h2 id="analyze-title">Source URL</h2>
+        <span class="mono muted">paste → analyze</span>
+      </div>
+      <form id="analyze-form" autocomplete="off">
+        <label class="sr-only" for="url">Page or media URL</label>
+        <div class="url-row">
+          <div class="url-field">
+            <span class="protocol" aria-hidden="true">URL</span>
+            <input id="url" name="url" type="text" inputmode="url" placeholder="https://example.com/watch/…" spellcheck="false" required>
+          </div>
+          <button class="btn btn-primary" id="analyze-btn" type="submit">
+            <span class="btn-label">Analyze</span>
+            <svg viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M3 9h11M10 4.5 14.5 9 10 13.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="form-foot">
+          <label class="cookie-picker" id="cookie-picker">
+            <input type="file" id="cookies-file" accept=".txt,text/plain">
+            <svg viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M9 2.5a6.5 6.5 0 1 0 6.5 6.5c0-.3-.2-.5-.5-.5-1.1 0-2-.9-2-2 0-.3-.2-.5-.5-.5C11.4 6 9 4.8 9 2.5Z" stroke="currentColor" stroke-width="1.3"/>
+              <circle cx="6.3" cy="7.3" r=".9" fill="currentColor"/>
+              <circle cx="8.2" cy="11.2" r=".9" fill="currentColor"/>
+              <circle cx="11.8" cy="9.4" r=".9" fill="currentColor"/>
+            </svg>
+            <span>Attach cookies.txt <em>for your own account</em></span>
+          </label>
+          <span class="cookie-status mono" id="cookie-status" role="status">no cookies attached</span>
+          <span class="limit-note mono" id="limit-note">LIMITS —</span>
+        </div>
+      </form>
+    </section>
+
+    <div class="workspace">
+      <section class="panel sources-panel" aria-labelledby="sources-title">
+        <header class="panel-head">
+          <div>
+            <p class="panel-kicker mono">01 / candidates</p>
+            <h2 id="sources-title">Detected sources</h2>
+          </div>
+          <span class="state-pill" id="job-state" data-state="idle">idle</span>
+        </header>
+
+        <ol class="tier-track" id="tier-track" aria-label="Extraction tiers">
+          <li data-tier="0"><span class="tier-num">T0</span><span class="tier-name">Direct media</span></li>
+          <li data-tier="1"><span class="tier-num">T1</span><span class="tier-name">yt-dlp</span></li>
+          <li data-tier="2"><span class="tier-num">T2</span><span class="tier-name">HTML parser</span></li>
+          <li data-tier="3"><span class="tier-num">T3</span><span class="tier-name">Browser sniffer</span></li>
+        </ol>
+
+        <div class="job-strip">
+          <p id="stage-line">Paste a URL to start.</p>
+          <span class="mono" id="job-id">no job</span>
+        </div>
+
+        <div id="error-box" class="error-box" role="alert" hidden>
+          <div class="error-head">
+            <span class="error-code mono" id="error-code"></span>
+            <button type="button" class="icon-btn" id="error-dismiss" aria-label="Dismiss error">×</button>
+          </div>
+          <p id="error-message"></p>
+          <p class="error-hint" id="error-hint"></p>
+        </div>
+
+        <div id="source-list" class="source-list">
+          <div class="empty" id="source-empty">
+            <div class="empty-graphic" aria-hidden="true">
+              <span>[</span><svg viewBox="0 0 42 42" fill="none"><path d="M12 11.5v19l16-9.5-16-9.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>]</span>
+            </div>
+            <h3>No candidates yet</h3>
+            <p>The log reports every tier it tries, including which one found the video.</p>
+          </div>
+        </div>
+
+        <footer class="sources-foot">
+          <p id="selection-summary">Waiting for a URL.</p>
+          <button class="btn btn-primary" id="download-btn" type="button" disabled>Download MP4</button>
+        </footer>
+      </section>
+
+      <section class="panel log-panel" aria-labelledby="log-title">
+        <header class="panel-head">
+          <div>
+            <p class="panel-kicker mono">02 / trace</p>
+            <h2 id="log-title">Engine log</h2>
+          </div>
+          <span class="tier-tag" id="active-tier-label">tier —</span>
+        </header>
+
+        <div class="progress-block" id="progress-block" hidden>
+          <div class="progress-top">
+            <span id="progress-stage">Downloading…</span>
+            <span class="mono" id="progress-percent">0%</span>
+          </div>
+          <div class="progress-track" id="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <div class="progress-stats mono">
+            <span id="progress-bytes">0 B</span>
+            <span id="progress-speed">—</span>
+            <span id="progress-eta">—</span>
+          </div>
+        </div>
+
+        <div class="log" id="log" role="log" aria-live="polite">
+          <div class="log-waiting" id="log-waiting"><span class="log-caret">▌</span> Waiting for a job.</div>
+        </div>
+        <footer class="log-foot mono">
+          <span class="sse-indicator"><i></i> live trace</span>
+          <span id="log-count">0 events</span>
+        </footer>
+      </section>
+    </div>
+
+    <section class="panel result-panel" id="result-panel" hidden aria-labelledby="result-title">
+      <div class="result-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0 5-5m-5 5-5-5M4 19h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="result-copy">
+        <p class="panel-kicker mono">03 / file ready</p>
+        <h2 id="result-title">The video is ready.</h2>
+        <p id="result-meta" class="mono"></p>
+      </div>
+      <a class="btn btn-primary" id="result-link" href="#" download>Save file</a>
+    </section>
+  </main>
+
+  <footer class="page-foot">
+    <p>Universal Video Downloader · local-only · no DRM circumvention</p>
+    <p class="mono">FastAPI / yt-dlp / Playwright / FFmpeg</p>
+  </footer>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
